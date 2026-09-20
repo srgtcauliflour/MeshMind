@@ -1,0 +1,57 @@
+name: MM-E001 Prepare
+
+on:
+  workflow_dispatch:
+    inputs:
+      train_url:
+        description: "Exact TinyStories training artifact URL"
+        required: true
+        default: "https://huggingface.co/datasets/roneneldan/TinyStories/resolve/main/TinyStories-train.txt"
+      valid_url:
+        description: "Exact TinyStories validation artifact URL"
+        required: true
+        default: "https://huggingface.co/datasets/roneneldan/TinyStories/resolve/main/TinyStories-valid.txt"
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -e .
+      - name: Acquire corpus and construct pinned manifest
+        env:
+          TRAIN_URL: ${{ inputs.train_url }}
+          VALID_URL: ${{ inputs.valid_url }}
+        run: |
+          mkdir -p data/raw/tinystories runs/mm-e001-prep
+          curl -fL "$TRAIN_URL" -o data/raw/tinystories/train.txt
+          curl -fL "$VALID_URL" -o data/raw/tinystories/valid.txt
+          TRAIN_SHA=$(sha256sum data/raw/tinystories/train.txt | cut -d' ' -f1)
+          VALID_SHA=$(sha256sum data/raw/tinystories/valid.txt | cut -d' ' -f1)
+          python - <<PY
+          import json, os
+          manifest = {
+              "version": 2,
+              "dataset": {"name": "TinyStories", "license": "CDLA-Sharing-1.0", "purpose": "MM-E001"},
+              "artifacts": [
+                  {"name": "train", "filename": "train.txt", "source_uri": os.environ["TRAIN_URL"], "sha256": "$TRAIN_SHA"},
+                  {"name": "valid", "filename": "valid.txt", "source_uri": os.environ["VALID_URL"], "sha256": "$VALID_SHA"},
+              ],
+          }
+          open("runs/mm-e001-prep/pinned-manifest.json", "w").write(json.dumps(manifest, indent=2) + "\n")
+          PY
+      - name: Verify and prepare
+        run: python scripts/prepare_mm_e001.py --manifest runs/mm-e001-prep/pinned-manifest.json --root data/raw/tinystories --output-dir runs/mm-e001-prep
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mm-e001-preparation
+          path: |
+            runs/mm-e001-prep/pinned-manifest.json
+            runs/mm-e001-prep/tokenizer.json
+            runs/mm-e001-prep/*.bin
+            runs/mm-e001-prep/*.json
+          retention-days: 30
