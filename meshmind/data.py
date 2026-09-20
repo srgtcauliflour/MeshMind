@@ -1,8 +1,8 @@
 """Dataset manifests and deterministic token-block utilities."""
 
-from dataclasses import dataclass
 import hashlib
 import json
+from dataclasses import dataclass
 from pathlib import Path
 
 
