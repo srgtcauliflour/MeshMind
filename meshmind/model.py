@@ -1,9 +1,8 @@
 from dataclasses import dataclass
-import math
 
 import torch
-from torch import nn
 import torch.nn.functional as F
+from torch import nn
 
 
 @dataclass
@@ -61,8 +60,10 @@ class Attention(nn.Module):
     def forward(self, x):
         b, t, d = x.shape
         q, k, v = self.qkv(x).chunk(3, dim=-1)
+
         def heads(z):
             return z.view(b, t, self.n_heads, self.head_dim).transpose(1, 2)
+
         q, k, v = heads(q), heads(k), heads(v)
         q, k = apply_rope(q, k)
         y = F.scaled_dot_product_attention(q, k, v, is_causal=True)
