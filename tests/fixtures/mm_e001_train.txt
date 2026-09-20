@@ -1,0 +1,4 @@
+Once there was a small network of helpful machines. Each machine learned a tiny part of a larger task.
+The machines shared short messages instead of moving all of their memory. When one machine disappeared,
+the others kept working together. A curious engineer measured every message and every mistake.
+The network learned to solve the task while speaking less. This made the little machines useful together.

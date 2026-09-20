@@ -26,6 +26,7 @@ class PretrainConfig:
     seed: int = 1337
     checkpoint_every: int = 50
     eval_every: int = 25
+    device: str = "auto"
 
 
 def learning_rate(step, cfg):
@@ -52,6 +53,8 @@ def evaluate(model, tokens, cfg, generator, batches=4):
     with torch.no_grad():
         for _ in range(batches):
             inputs, targets = sample_batch(tokens, cfg, generator)
+            device = next(model.parameters()).device
+            inputs, targets = inputs.to(device), targets.to(device)
             _, loss = model(inputs, targets)
             losses.append(float(loss))
     model.train()
@@ -64,7 +67,11 @@ def pretrain(train_tokens, valid_tokens, model_cfg=None, cfg=None, output_dir="r
     seed_everything(cfg.seed)
     random.seed(cfg.seed)
     generator = torch.Generator().manual_seed(cfg.seed)
-    model = MeshMindLM(model_cfg)
+    if cfg.device == "auto":
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    else:
+        device = torch.device(cfg.device)
+    model = MeshMindLM(model_cfg).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=cfg.learning_rate, weight_decay=cfg.weight_decay)
     start_step = 0
     if resume:
@@ -80,6 +87,7 @@ def pretrain(train_tokens, valid_tokens, model_cfg=None, cfg=None, output_dir="r
         for group in optimizer.param_groups:
             group["lr"] = lr
         inputs, targets = sample_batch(train_tokens, cfg, generator)
+        inputs, targets = inputs.to(device), targets.to(device)
         optimizer.zero_grad(set_to_none=True)
         _, loss = model(inputs, targets)
         loss.backward()
