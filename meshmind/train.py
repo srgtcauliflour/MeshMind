@@ -1,7 +1,7 @@
 """Minimal reproducible training loop for MeshMind experiments."""
 
-from dataclasses import dataclass
 import random
+from dataclasses import dataclass
 
 import torch
 
