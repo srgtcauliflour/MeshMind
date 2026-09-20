@@ -2,6 +2,7 @@
 
 import json
 from collections import Counter
+from itertools import pairwise
 from pathlib import Path
 
 SPECIAL_TOKENS = ("<bos>", "<eos>", "<pad>")
@@ -64,7 +65,7 @@ def train_bpe(texts, vocab_size=16_384):
     for merge_index in range(target_merges):
         counts = Counter()
         for sequence in sequences:
-            counts.update(zip(sequence, sequence[1:]))
+            counts.update(pairwise(sequence))
         if not counts:
             break
         pair, _ = counts.most_common(1)[0]
