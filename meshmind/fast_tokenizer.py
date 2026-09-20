@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from tokenizers import decoders, models, pre_tokenizers, trainers, Tokenizer
+from tokenizers import Tokenizer, decoders, models, pre_tokenizers, trainers
 
 
 SPECIAL_TOKENS = ["<bos>", "<eos>", "<pad>"]
