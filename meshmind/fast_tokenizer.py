@@ -4,7 +4,6 @@ from pathlib import Path
 
 from tokenizers import Tokenizer, decoders, models, pre_tokenizers, trainers
 
-
 SPECIAL_TOKENS = ["<bos>", "<eos>", "<pad>"]
 
 
