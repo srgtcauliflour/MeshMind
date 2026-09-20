@@ -12,6 +12,10 @@ dependencies = ["torch>=2.3"]
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff>=0.6"]
 
+[tool.setuptools.packages.find]
+include = ["meshmind*"]
+exclude = ["data*", "docs*", "tests*"]
+
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
